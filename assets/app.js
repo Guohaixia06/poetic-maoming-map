@@ -14,13 +14,24 @@ let currentUser = null;
 document.addEventListener('DOMContentLoaded', () => {
   loadPoems();
   loadUser();
-  initMap();
-  renderCategories();
-  renderPoemFilter();
-  setupRouting();
-  setupModalClose();
-  updateNavUser();
+  // 地图延迟初始化，等封面关闭后再加载
+  setTimeout(() => {
+    initMap();
+    renderCategories();
+    renderPoemFilter();
+    setupRouting();
+    setupModalClose();
+    updateNavUser();
+  }, 100);
 });
+
+// 进入应用（关闭封面）
+function enterApp() {
+  const overlay = document.getElementById('landingOverlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+  }
+}
 
 // ==================== 用户登录 ====================
 function loadUser() {
