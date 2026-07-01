@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>诗意茂名地图 - 认领你心中的茂名坐标</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+<script src="assets/landmarks-data.js"></script>
+<style>
+.maplibregl-popup-content {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-family: inherit;
+}
+.maplibregl-popup-close-button {
+  font-size: 18px;
+  padding: 4px 8px;
+}
+</style>
+</head>
+<body>
+
+<!-- 导航栏 -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="icon">📜</span>
+    <span>诗意茂名地图</span>
+    <span class="nav-subtitle">100个地标 · 100首诗</span>
+  </div>
+  <div class="nav-links">
+    <a href="#map" class="active" data-page="map">🗺️ 诗意地图</a>
+    <a href="#poems" data-page="poems">📖 诗歌馆</a>
+    <a href="#about" data-page="about">🏛️ 关于</a>
+    <a href="admin.html" target="_blank">⚙️ 管理</a>
+  </div>
+  <div id="navUser" style="margin-left:1rem;"></div>
+</nav>
+
+<!-- 主容器 -->
+<div class="app-container">
+
+  <!-- 侧边栏 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>🗂️ 十大主题</h2>
+      <p>点击筛选，探索茂名</p>
+    </div>
+    <div class="category-list" id="categoryList"></div>
+    <div class="sidebar-footer">
+      《诗意茂名地图》TRAE AI创造力大赛作品
+    </div>
+  </aside>
+
+  <!-- 地图页面 -->
+  <div class="map-container" id="mapPage">
+    <div id="map"></div>
+  </div>
+
+  <!-- 诗歌馆页面 -->
+  <div class="page-content hidden" id="poemsPage">
+    <h2>📖 诗歌地理志</h2>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num" id="statTotal">100</div><div class="stat-label">个地标</div></div>
+      <div class="stat-card"><div class="stat-num" id="statPoems">0</div><div class="stat-label">首诗歌</div></div>
+      <div class="stat-card"><div class="stat-num" id="statAuthors">0</div><div class="stat-label">位诗人</div></div>
+      <div class="stat-card"><div class="stat-num" id="statVotes">0</div><div class="stat-label">次点赞</div></div>
+    </div>
+    <div class="filter-bar" id="poemFilter"></div>
+    <div id="poemsList"></div>
+  </div>
+
+  <!-- 关于页面 -->
+  <div class="page-content hidden" id="aboutPage">
+    <h2>🏛️ 关于诗意茂名地图</h2>
+    <div style="background:#fff;border-radius:12px;padding:2rem;margin-top:1rem;border:1px solid var(--rule);">
+      <h3 style="color:var(--accent);margin-bottom:1rem;">项目理念</h3>
+      <p style="margin-bottom:1rem;"><strong>认领你心中的茂名坐标，写下它的山海、烟火与时代新声。</strong></p>
+      <p style="margin-bottom:1rem;">《诗意茂名地图》是一部由市民共同书写的茂名"诗歌地理志"。我们在茂名五区两市（茂南、电白、高州、化州、信宜）精选了100个地标，覆盖山海风光、物华天宝、古郡遗韵、红色热土、油城新貌、美丽乡村、人间烟火、工业脊梁、杏坛流芳、向海图强十大主题。</p>
+      <p style="margin-bottom:1rem;">每一个地标，等待一首真挚的诗。当100个地标被100首诗点亮，茂名将不再只是地图上的一个名字，而是一部人人可读、人人可写的诗歌地理志。</p>
+      <h3 style="color:var(--accent);margin:1.5rem 0 1rem;">参与方式</h3>
+      <ol style="padding-left:1.5rem;color:var(--muted);">
+        <li style="margin-bottom:0.5rem;">在地图上浏览100个茂名地标</li>
+        <li style="margin-bottom:0.5rem;">选择触动你的地标，点击"认领坐标"</li>
+        <li style="margin-bottom:0.5rem;">写下不超过150字的原创诗歌</li>
+        <li style="margin-bottom:0.5rem;">社区投票 + 专家评审，优秀作品入选《诗歌地理志》</li>
+      </ol>
+      <h3 style="color:var(--accent);margin:1.5rem 0 1rem;">技术特色</h3>
+      <p style="color:var(--muted);">本项目基于 TRAE AI 开发，集成了AI诗歌润色、AI参考诗生成、智能地标推荐等AI能力，让每一位参与者都能获得创作的灵感与辅助。</p>
+      <div style="margin-top:2rem;text-align:center;color:var(--muted);font-size:0.85rem;">
+        《诗意茂名地图》· TRAE AI创造力大赛参赛作品<br>
+        世界很大，放手去造
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 地标详情弹窗 -->
+<div class="modal-overlay" id="landmarkModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="lmModalTitle">地标详情</h3>
+      <button class="modal-close" onclick="closeModal('landmarkModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="lmModalBody"></div>
+  </div>
+</div>
+
+<!-- 投稿弹窗 -->
+<div class="modal-overlay" id="submitModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✒️ 为地标写首诗</h3>
+      <button class="modal-close" onclick="closeModal('submitModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="poemForm" onsubmit="return handleSubmit(event)">
+        <input type="hidden" id="poemLandmarkId">
+        <div class="form-group">
+          <label>地标</label>
+          <input type="text" id="poemLandmarkName" readonly style="background:var(--bg2);">
+        </div>
+        <div class="form-group">
+          <label>诗人昵称</label>
+          <input type="text" id="poemAuthor" placeholder="请输入您的昵称" required maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>诗歌标题</label>
+          <input type="text" id="poemTitle" placeholder="给诗歌起个名字" required maxlength="30">
+        </div>
+        <div class="form-group">
+          <label>诗歌正文 <span style="font-weight:400;color:var(--muted);">（不超过150字）</span></label>
+          <textarea id="poemContent" placeholder="写下你对这片土地的真挚凝望..." required maxlength="150" oninput="updateCharCount(this)"></textarea>
+          <div class="char-count" id="charCount">0 / 150</div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">📝 提交投稿</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- AI润色弹窗 -->
+<div class="modal-overlay" id="polishModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✨ AI 诗歌润色</h3>
+      <button class="modal-close" onclick="closeModal('polishModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>原稿</label>
+        <div id="polishOriginal" style="padding:0.75rem;background:var(--bg);border-radius:8px;font-size:0.9rem;white-space:pre-wrap;"></div>
+      </div>
+      <div class="form-group">
+        <label>润色建议</label>
+        <div id="polishResult" style="padding:0.75rem;background:#E8F5E9;border-radius:8px;font-size:0.9rem;white-space:pre-wrap;border-left:3px solid var(--accent2);"></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="usePolishedPoem()">✅ 采用润色版本</button>
+    </div>
+  </div>
+</div>
+
+<!-- 海报弹窗 -->
+<div class="modal-overlay" id="posterModal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <h3>🖼️ 诗歌海报</h3>
+      <button class="modal-close" onclick="closeModal('posterModal')">&times;</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <canvas id="posterCanvas" width="600" height="800" style="max-width:100%;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.15);"></canvas>
+      <div style="margin-top:1rem;display:flex;gap:0.75rem;justify-content:center;">
+        <button class="btn btn-primary" onclick="downloadPoster()">💾 下载海报</button>
+        <button class="btn btn-secondary" onclick="closeModal('posterModal')">关闭</button>
+      </div>
+      <p style="text-align:center;margin-top:0.75rem;color:var(--muted);font-size:0.8rem;">
+        也可直接截图保存，分享朋友圈
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- 微信登录弹窗 -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <h3>🔒 登录 / 注册</h3>
+      <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <div style="font-size:3rem;margin-bottom:1rem;">📜</div>
+      <p style="margin-bottom:1.5rem;color:var(--muted);">登录后即可认领坐标、投稿诗歌</p>
+      <form onsubmit="return handleLogin(event)">
+        <div class="form-group">
+          <input type="text" id="loginNickname" placeholder="请输入您的昵称" required maxlength="20" style="text-align:center;">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">✨ 开始创作</button>
+      </form>
+      <p style="margin-top:1rem;font-size:0.75rem;color:var(--muted);">
+        温馨提示：此为MVP演示版，采用昵称快速登录。<br>正式版将接入微信扫码登录。
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
