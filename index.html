@@ -115,6 +115,91 @@
   align-items: center;
   gap: 0.4rem;
 }
+
+/* ===== 地标搜索列表 ===== */
+.landmark-search-box {
+  padding: 0 1rem;
+  margin: 0.75rem 0;
+}
+.landmark-search-box input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.landmark-search-box input:focus {
+  border-color: var(--accent);
+}
+.landmark-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1rem 1rem;
+  max-height: 320px;
+}
+.landmark-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+.landmark-list-item:hover {
+  background: var(--card-bg);
+}
+.landmark-list-item .lm-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+.landmark-list-item .lm-info {
+  flex: 1;
+  min-width: 0;
+}
+.landmark-list-item .lm-name {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.landmark-list-item .lm-district {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.landmark-list-item .lm-status {
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.landmark-list-item .lm-status.free {
+  background: #E3F2FD;
+  color: #1565C0;
+}
+.landmark-list-item .lm-status.claimed {
+  background: #FFF3E0;
+  color: #E65100;
+}
+.landmark-list-item .lm-status.mine {
+  background: #E8F5E9;
+  color: #2E7D6B;
+}
+
 @media (max-width: 600px) {
   .landing-content h1 { font-size: 2rem; }
   .landing-subtitle { font-size: 1rem; }
@@ -167,6 +252,13 @@
       <p>点击筛选，探索茂名</p>
     </div>
     <div class="category-list" id="categoryList"></div>
+
+    <!-- 地标搜索列表 -->
+    <div class="landmark-search-box">
+      <input type="text" id="landmarkSearch" placeholder="🔍 搜索地标名称..." oninput="filterLandmarkList(this.value)">
+    </div>
+    <div class="landmark-list" id="landmarkList"></div>
+
     <div class="sidebar-footer">
       《诗意茂名地图》TRAE AI创造力大赛作品
     </div>
