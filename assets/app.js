@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     initMap();
     renderCategories();
+    renderLandmarkList();
     renderPoemFilter();
     setupRouting();
     setupModalClose();
@@ -295,6 +296,7 @@ function setFilter(cat) {
   currentFilter = cat;
   renderCategories();
   renderMarkers();
+  renderLandmarkList();
 
   if (map) {
     const filtered = cat === 'all' ? LANDMARKS : LANDMARKS.filter(lm => lm.category === cat);
@@ -305,6 +307,69 @@ function setFilter(cat) {
       map.fitBounds(bounds, { padding: 60, maxZoom: 13 });
     }
   }
+}
+
+// ==================== 地标列表 ====================
+function renderLandmarkList(keyword = '') {
+  const container = document.getElementById('landmarkList');
+  if (!container) return;
+
+  let list = currentFilter === 'all'
+    ? LANDMARKS
+    : LANDMARKS.filter(lm => lm.category === currentFilter);
+
+  if (keyword.trim()) {
+    const k = keyword.trim().toLowerCase();
+    list = list.filter(lm => lm.name.toLowerCase().includes(k) || lm.district.includes(k));
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:0.8rem;padding:1rem;">暂无匹配地标</div>';
+    return;
+  }
+
+  let html = '';
+  list.forEach(lm => {
+    const claimedByMe = isLandmarkClaimedByUser(lm.id);
+    const claimer = getLandmarkClaimer(lm.id);
+    let statusClass = 'free';
+    let statusText = '空闲';
+    if (claimedByMe) {
+      statusClass = 'mine';
+      statusText = '已认领';
+    } else if (claimer) {
+      statusClass = 'claimed';
+      statusText = '被认领';
+    }
+
+    html += `
+      <div class="landmark-list-item" onclick="clickLandmarkListItem(${lm.id})">
+        <div class="lm-icon" style="background:${lm.categoryColor}20;color:${lm.categoryColor};">${lm.categoryIcon}</div>
+        <div class="lm-info">
+          <div class="lm-name">${escapeHtml(lm.name)}</div>
+          <div class="lm-district">${lm.district}</div>
+        </div>
+        <span class="lm-status ${statusClass}">${statusText}</span>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function filterLandmarkList(keyword) {
+  renderLandmarkList(keyword);
+}
+
+function clickLandmarkListItem(lmId) {
+  const lm = LANDMARKS.find(l => l.id === lmId);
+  if (!lm) return;
+  // 地图飞到该地标
+  if (map && lm.lng && lm.lat) {
+    map.flyTo({ center: [lm.lng, lm.lat], zoom: 14, duration: 1000 });
+  }
+  // 打开详情
+  showLandmarkDetail(lm);
 }
 
 // ==================== 地标详情弹窗 ====================
