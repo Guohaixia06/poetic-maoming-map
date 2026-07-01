@@ -200,6 +200,25 @@
   color: #2E7D6B;
 }
 
+/* 返回按钮 */
+.back-to-cats {
+  padding: 0.6rem 1rem;
+  margin: 0 1rem 0.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.back-to-cats:hover {
+  background: var(--border);
+}
+
 @media (max-width: 600px) {
   .landing-content h1 { font-size: 2rem; }
   .landing-subtitle { font-size: 1rem; }
@@ -248,16 +267,23 @@
   <!-- 侧边栏 -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <h2>🗂️ 十大主题</h2>
-      <p>点击筛选，探索茂名</p>
+      <h2 id="sidebarTitle">🗂️ 十大主题</h2>
+      <p id="sidebarSubtitle">点击主题，探索茂名</p>
     </div>
+
+    <!-- 返回按钮（默认隐藏） -->
+    <div class="back-to-cats" id="backToCats" style="display:none;" onclick="showCategoryView()">
+      ← 返回全部主题
+    </div>
+
+    <!-- 主题列表 -->
     <div class="category-list" id="categoryList"></div>
 
-    <!-- 地标搜索列表 -->
-    <div class="landmark-search-box">
+    <!-- 地标列表（默认隐藏） -->
+    <div class="landmark-search-box" id="lmSearchBox" style="display:none;">
       <input type="text" id="landmarkSearch" placeholder="🔍 搜索地标名称..." oninput="filterLandmarkList(this.value)">
     </div>
-    <div class="landmark-list" id="landmarkList"></div>
+    <div class="landmark-list" id="landmarkList" style="display:none;"></div>
 
     <div class="sidebar-footer">
       《诗意茂名地图》TRAE AI创造力大赛作品
