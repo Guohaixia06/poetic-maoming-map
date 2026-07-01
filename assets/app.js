@@ -296,7 +296,9 @@ function setFilter(cat) {
   currentFilter = cat;
   renderCategories();
   renderMarkers();
-  renderLandmarkList();
+
+  // 切换为地标列表视图
+  showLandmarkView(cat);
 
   if (map) {
     const filtered = cat === 'all' ? LANDMARKS : LANDMARKS.filter(lm => lm.category === cat);
@@ -307,6 +309,36 @@ function setFilter(cat) {
       map.fitBounds(bounds, { padding: 60, maxZoom: 13 });
     }
   }
+}
+
+// 切换到地标列表视图
+function showLandmarkView(cat) {
+  const catMeta = LANDMARK_CATEGORIES[cat];
+  const title = cat === 'all' ? '全部地标' : (catMeta ? catMeta.name : '地标列表');
+
+  document.getElementById('sidebarTitle').textContent = title;
+  document.getElementById('sidebarSubtitle').textContent = cat === 'all' ? '共 ' + LANDMARKS.length + ' 个地标' : '点击地标查看详情';
+  document.getElementById('categoryList').style.display = 'none';
+  document.getElementById('backToCats').style.display = 'flex';
+  document.getElementById('lmSearchBox').style.display = 'block';
+  document.getElementById('landmarkList').style.display = 'block';
+
+  renderLandmarkList();
+}
+
+// 返回主题列表视图
+function showCategoryView() {
+  currentFilter = 'all';
+  document.getElementById('sidebarTitle').textContent = '🗂️ 十大主题';
+  document.getElementById('sidebarSubtitle').textContent = '点击主题，探索茂名';
+  document.getElementById('categoryList').style.display = 'block';
+  document.getElementById('backToCats').style.display = 'none';
+  document.getElementById('lmSearchBox').style.display = 'none';
+  document.getElementById('landmarkList').style.display = 'none';
+  document.getElementById('landmarkSearch').value = '';
+
+  renderCategories();
+  renderMarkers();
 }
 
 // ==================== 地标列表 ====================
