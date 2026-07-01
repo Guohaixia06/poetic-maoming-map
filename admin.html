@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 - 诗意茂名地图</title>
+<link rel="stylesheet" href="assets/style.css">
+<script src="assets/landmarks-data.js"></script>
+<style>
+.admin-layout { display: flex; min-height: 100vh; padding-top: 60px; }
+.admin-sidebar { width: 240px; background: var(--ink); color: #fff; padding: 1.5rem; }
+.admin-sidebar h2 { font-size: 1.1rem; margin-bottom: 1.5rem; }
+.admin-sidebar a { display: block; color: rgba(255,255,255,0.7); text-decoration: none; padding: 0.6rem 0; font-size: 0.9rem; }
+.admin-sidebar a:hover, .admin-sidebar a.active { color: #fff; }
+.admin-main { flex: 1; padding: 1.5rem 2rem; overflow-y: auto; }
+.admin-main h2 { margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="icon">⚙️</span>
+    <span>管理后台</span>
+    <span class="nav-subtitle">诗意茂名地图</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html#map">🏠 返回首页</a>
+  </div>
+</nav>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <h2>📊 管理菜单</h2>
+    <a href="#submissions" class="active" onclick="showAdminTab('submissions')">📝 投稿审核</a>
+    <a href="#stats" onclick="showAdminTab('stats')">📈 数据统计</a>
+  </aside>
+
+  <main class="admin-main">
+    <div id="adminSubmissions">
+      <h2>📝 投稿审核</h2>
+      <div class="stats-row" style="grid-template-columns: repeat(3, 1fr);margin-bottom:1.5rem;">
+        <div class="stat-card"><div class="stat-num" id="adminTotal">0</div><div class="stat-label">总投稿</div></div>
+        <div class="stat-card"><div class="stat-num" id="adminPending">0</div><div class="stat-label">待审核</div></div>
+        <div class="stat-card"><div class="stat-num" id="adminApproved">0</div><div class="stat-label">已通过</div></div>
+      </div>
+      <div id="submissionsTable"></div>
+    </div>
+
+    <div id="adminStats" class="hidden">
+      <h2>📈 数据统计</h2>
+      <div style="background:#fff;border-radius:10px;padding:1.5rem;border:1px solid var(--rule);margin-top:1rem;">
+        <h4 style="margin-bottom:1rem;color:var(--accent);">按主题统计投稿</h4>
+        <div id="categoryStats"></div>
+      </div>
+      <div style="background:#fff;border-radius:10px;padding:1.5rem;border:1px solid var(--rule);margin-top:1rem;">
+        <h4 style="margin-bottom:1rem;color:var(--accent);">热门地标（投稿数Top10）</h4>
+        <div id="hotLandmarks"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let poems = [];
+
+try {
+  poems = JSON.parse(localStorage.getItem('pm_poems') || '[]');
+} catch { poems = []; }
+
+function showAdminTab(tab) {
+  document.getElementById('adminSubmissions').classList.toggle('hidden', tab !== 'submissions');
+  document.getElementById('adminStats').classList.toggle('hidden', tab !== 'stats');
+  document.querySelectorAll('.admin-sidebar a').forEach(a => a.classList.remove('active'));
+  event.target.classList.add('active');
+  if (tab === 'stats') renderStats();
+}
+
+function renderSubmissions() {
+  const total = poems.length;
+  const pending = poems.filter(p => p.status === 'pending').length;
+  const approved = poems.filter(p => p.status === 'approved').length;
+
+  document.getElementById('adminTotal').textContent = total;
+  document.getElementById('adminPending').textContent = pending;
+  document.getElementById('adminApproved').textContent = approved;
+
+  const container = document.getElementById('submissionsTable');
+  if (total === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted);">暂无投稿</div>';
+    return;
+  }
+
+  let html = '<table class="admin-table"><thead><tr><th>ID</th><th>地标</th><th>标题</th><th>作者</th><th>字数</th><th>投票</th><th>状态</th><th>操作</th></tr></thead><tbody>';
+
+  poems.slice().reverse().forEach(p => {
+    const lm = LANDMARKS.find(l => l.id === p.landmarkId);
+    const statusClass = p.status === 'approved' ? 'status-approved' : p.status === 'rejected' ? 'status-rejected' : 'status-pending';
+    const statusText = p.status === 'approved' ? '已通过' : p.status === 'rejected' ? '已拒绝' : '待审核';
+
+    html += `<tr>
+      <td>${p.id.toString().slice(-6)}</td>
+      <td>${lm ? lm.name : '未知'}</td>
+      <td>${escapeHtml(p.title)}</td>
+      <td>${escapeHtml(p.author)}</td>
+      <td>${p.content.length}</td>
+      <td>${p.votes || 0}</td>
+      <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+      <td>
+        ${p.status !== 'approved' ? `<button class="btn btn-primary" style="padding:0.3rem 0.6rem;font-size:0.75rem;" onclick="approvePoem(${p.id})">通过</button>` : ''}
+        ${p.status !== 'rejected' ? `<button class="btn btn-secondary" style="padding:0.3rem 0.6rem;font-size:0.75rem;margin-left:0.3rem;" onclick="rejectPoem(${p.id})">拒绝</button>` : ''}
+      </td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function approvePoem(id) {
+  const p = poems.find(x => x.id === id);
+  if (p) { p.status = 'approved'; savePoems(); renderSubmissions(); }
+}
+
+function rejectPoem(id) {
+  const p = poems.find(x => x.id === id);
+  if (p) { p.status = 'rejected'; savePoems(); renderSubmissions(); }
+}
+
+function savePoems() {
+  localStorage.setItem('pm_poems', JSON.stringify(poems));
+}
+
+function renderStats() {
+  // Category stats
+  const catStats = {};
+  Object.keys(LANDMARK_CATEGORIES).forEach(k => catStats[k] = 0);
+  poems.forEach(p => {
+    const lm = LANDMARKS.find(l => l.id === p.landmarkId);
+    if (lm) catStats[lm.category] = (catStats[lm.category] || 0) + 1;
+  });
+
+  let catHtml = '<table class="admin-table"><thead><tr><th>主题</th><th>投稿数</th></tr></thead><tbody>';
+  Object.entries(LANDMARK_CATEGORIES).forEach(([key, meta]) => {
+    catHtml += `<tr><td>${meta.icon} ${meta.name}</td><td>${catStats[key] || 0}</td></tr>`;
+  });
+  catHtml += '</tbody></table>';
+  document.getElementById('categoryStats').innerHTML = catHtml;
+
+  // Hot landmarks
+  const lmCount = {};
+  poems.forEach(p => { lmCount[p.landmarkId] = (lmCount[p.landmarkId] || 0) + 1; });
+  const sorted = Object.entries(lmCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
+
+  let hotHtml = '<table class="admin-table"><thead><tr><th>排名</th><th>地标</th><th>投稿数</th></tr></thead><tbody>';
+  sorted.forEach(([lmId, count], i) => {
+    const lm = LANDMARKS.find(l => l.id === parseInt(lmId));
+    hotHtml += `<tr><td>${i + 1}</td><td>${lm ? lm.name : '未知'}</td><td>${count}</td></tr>`;
+  });
+  hotHtml += '</tbody></table>';
+  document.getElementById('hotLandmarks').innerHTML = hotHtml;
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+renderSubmissions();
+</script>
+</body>
+</html>
