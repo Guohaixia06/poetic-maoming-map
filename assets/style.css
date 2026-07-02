@@ -640,6 +640,9 @@ body {
   margin-right: 0.5rem;
 }
 @media (max-width: 768px) {
+    .mobile-menu-btn {
+    display: block;
+  }
   .sidebar {
     position: fixed;
     left: -280px;
