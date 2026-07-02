@@ -33,6 +33,13 @@ function enterApp() {
     overlay.classList.add('hidden');
   }
 }
+// 移动端切换侧边栏
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.classList.toggle('open');
+  }
+}
 
 // ==================== 用户登录 ====================
 function loadUser() {
